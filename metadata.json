@@ -1,0 +1,6 @@
+{
+  "name": "Global Store & Agent Hub",
+  "description": "Unified dashboard to orchestrate multiple Wed2C dropshipping stores, manage agent networks, plan social media ad campaigns, configure payment gateways, and track operational costs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
