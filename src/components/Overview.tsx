@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Store, Agent, PaymentGatewayConfig, AdCampaign } from '../types';
-import { WED2C_STORES } from '../data/stores';
 import {
   Layers,
   Users,
@@ -13,11 +12,13 @@ import {
   ChevronRight,
   Database,
   RefreshCw,
-  Sparkles
+  Sparkles,
+  FileSpreadsheet
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface OverviewProps {
+  stores: Store[];
   agents: Agent[];
   campaigns: AdCampaign[];
   paymentConfigs: PaymentGatewayConfig[];
@@ -36,6 +37,7 @@ interface OverviewProps {
 }
 
 export const Overview: React.FC<OverviewProps> = ({
+  stores,
   agents,
   campaigns,
   paymentConfigs,
@@ -45,7 +47,7 @@ export const Overview: React.FC<OverviewProps> = ({
   const [copiedStoreIndex, setCopiedStoreIndex] = useState<number | null>(null);
 
   // Stats calculation
-  const totalStoresCount = WED2C_STORES.length;
+  const totalStoresCount = stores.length;
   const activeGatewaysLength = paymentConfigs.filter(g => g.isActive).length;
   const totalAgentsCount = agents.length;
   const subAgentsCount = agents.filter(a => a.role === 'Sub-Agent').length;
@@ -62,6 +64,64 @@ export const Overview: React.FC<OverviewProps> = ({
     navigator.clipboard.writeText(text);
     setCopiedStoreIndex(index);
     setTimeout(() => setCopiedStoreIndex(null), 2000);
+  };
+
+  const handleExportExcel = () => {
+    if (transactions.length === 0) {
+      alert("No transaction records to export!");
+      return;
+    }
+
+    const headers = [
+      "Transaction ID",
+      "Store Name",
+      "Store URL",
+      "Product Name",
+      "Customer Email",
+      "Amount (USD)",
+      "Payment Gateway",
+      "Created At",
+      "Status",
+      "Agent Assigned"
+    ];
+
+    const rows = transactions.map(tx => {
+      const storeObj = stores.find(s => s.url === tx.storeUrl);
+      const storeName = storeObj ? storeObj.name : "Unknown Store";
+      const agentAssigned = tx.agentId ? tx.agentId : "Direct";
+
+      const escapeCsv = (val: string | number | undefined) => {
+        if (val === undefined || val === null) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
+      return [
+        escapeCsv(tx.id),
+        escapeCsv(storeName),
+        escapeCsv(tx.storeUrl),
+        escapeCsv(tx.productName),
+        escapeCsv(tx.customerEmail),
+        escapeCsv(tx.amount),
+        escapeCsv(tx.gatewayUsed),
+        escapeCsv(tx.createdAt),
+        escapeCsv(tx.status),
+        escapeCsv(agentAssigned)
+      ];
+    });
+
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement("a");
+    const today = new Date().toISOString().split('T')[0];
+    link.setAttribute("href", url);
+    link.setAttribute("download", `wed2c_transactions_export_${today}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -167,7 +227,7 @@ export const Overview: React.FC<OverviewProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {WED2C_STORES.map((store, index) => {
+            {stores.map((store, index) => {
               // Aggregate statistics for this outlet
               const storeTransactions = transactions.filter(t => t.storeUrl === store.url);
               const storeSales = storeTransactions.reduce((sum, t) => sum + t.amount, 0);
@@ -240,10 +300,20 @@ export const Overview: React.FC<OverviewProps> = ({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-bold text-slate-800">Unified Transaction Log</h3>
-            <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-mono flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              Live proxy
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleExportExcel}
+                className="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold py-1 px-3 rounded-lg flex items-center gap-1 transition shadow-3xs cursor-pointer inline-flex items-center"
+                title="Export current transaction log as Microsoft Excel compatible file"
+              >
+                <FileSpreadsheet size={13} />
+                <span>Export to Excel</span>
+              </button>
+              <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-mono flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Live proxy
+              </span>
+            </div>
           </div>
 
           <div className="bg-slate-900 text-slate-100 p-5 rounded-2xl border border-slate-800 shadow-sm flex flex-col h-[520px]">
@@ -261,7 +331,7 @@ export const Overview: React.FC<OverviewProps> = ({
                 </div>
               ) : (
                 transactions.map((tx) => {
-                  const storeObj = WED2C_STORES.find(s => s.url === tx.storeUrl);
+                  const storeObj = stores.find(s => s.url === tx.storeUrl);
                   return (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AdCampaign, Store } from '../types';
-import { WED2C_STORES, CHANNEL_BENCHMARKS, ChannelBenchmark } from '../data/stores';
+import { CHANNEL_BENCHMARKS, ChannelBenchmark } from '../data/stores';
 import {
   TrendingUp,
   Sliders,
@@ -18,6 +18,7 @@ import {
 import { motion } from 'motion/react';
 
 interface AdPlannerProps {
+  stores: Store[];
   campaigns: AdCampaign[];
   onAddCampaign: (newCampaign: Omit<AdCampaign, 'id'>) => void;
   onDeleteCampaign: (id: string) => void;
@@ -25,13 +26,14 @@ interface AdPlannerProps {
 }
 
 export const AdPlanner: React.FC<AdPlannerProps> = ({
+  stores,
   campaigns,
   onAddCampaign,
   onDeleteCampaign,
   onShowNotification
 }) => {
   // Campaign creator states
-  const [selectedStoreUrl, setSelectedStoreUrl] = useState<string>(WED2C_STORES[0].url);
+  const [selectedStoreUrl, setSelectedStoreUrl] = useState<string>(stores[0]?.url || '');
   const [selectedPlatform, setSelectedPlatform] = useState<AdCampaign['platform']>('Facebook');
   const [budget, setBudget] = useState<number>(1500);
   const [targetCPC, setTargetCPC] = useState<number>(0.85);
@@ -47,7 +49,7 @@ export const AdPlanner: React.FC<AdPlannerProps> = ({
     setTargetCVR(benchmark.avgCVR);
     
     // Auto-assign corresponding best-fit store url if matched
-    const bestFitStore = WED2C_STORES.find(store => store.niche === benchmark.recommendedNiches[0]);
+    const bestFitStore = stores.find(store => store.niche === benchmark.recommendedNiches[0]);
     if (bestFitStore) {
       setSelectedStoreUrl(bestFitStore.url);
     }
@@ -124,7 +126,7 @@ export const AdPlanner: React.FC<AdPlannerProps> = ({
 
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
           {CHANNEL_BENCHMARKS.map((benchmark) => {
-            const bestFitStore = WED2C_STORES.find(store => store.niche === benchmark.recommendedNiches[0]);
+            const bestFitStore = stores.find(store => store.niche === benchmark.recommendedNiches[0]);
             return (
               <button
                 key={benchmark.platform}
@@ -180,7 +182,7 @@ export const AdPlanner: React.FC<AdPlannerProps> = ({
                   onChange={(e) => setSelectedStoreUrl(e.target.value)}
                   className="w-full text-slate-800 border border-slate-200 rounded-lg p-2 bg-white"
                 >
-                  {WED2C_STORES.map(store => (
+                  {stores.map(store => (
                     <option key={store.id} value={store.url}>
                       {store.name}
                     </option>
@@ -387,7 +389,7 @@ export const AdPlanner: React.FC<AdPlannerProps> = ({
 
             <div className="divide-y divide-slate-100 text-xs text-slate-700">
               {campaigns.map((camp) => {
-                const storeObj = WED2C_STORES.find(s => s.url === camp.storeUrl);
+                const storeObj = stores.find(s => s.url === camp.storeUrl);
                 const metrics = calculateMetrics(
                   camp.budget,
                   camp.targetCPC,
