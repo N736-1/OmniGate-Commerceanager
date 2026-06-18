@@ -10,7 +10,7 @@ import { AgentNetwork } from './components/AgentNetwork';
 import { AdPlanner } from './components/AdPlanner';
 import { MaintenanceCalc } from './components/MaintenanceCalc';
 import { AdminDashboard } from './components/AdminDashboard';
-import { Agent, PaymentGatewayConfig, AdCampaign, Store } from './types';
+import { Agent, PaymentGatewayConfig, AdCampaign } from './types';
 import { INITIAL_AGENTS } from './data/initialAgents';
 import { WED2C_STORES } from './data/stores';
 import {
@@ -33,7 +33,6 @@ export default function App() {
   };
 
   // Unified application state
-  const [stores, setStores] = useState<Store[]>(WED2C_STORES);
   const [agents, setAgents] = useState<Agent[]>(INITIAL_AGENTS);
   
   const [campaigns, setCampaigns] = useState<AdCampaign[]>([
@@ -61,15 +60,6 @@ export default function App() {
 
   const [paymentConfigs, setPaymentConfigs] = useState<PaymentGatewayConfig[]>([
     {
-      id: 'paybridg',
-      name: 'PayBridg Pakistan Gateway',
-      isActive: true,
-      apiKey: 'PB_LIVE_90TMFB0000000041354279',
-      webhookUrl: 'https://sellonlinestore1.wed2c.com/api/webhooks/paybridg',
-      supportedMethods: ['Easypaisa IBAN', 'JazzCash Raast ID', 'Direct Cards (Visa/Master)', 'Crypto'],
-      testMode: true
-    },
-    {
       id: 'stripe',
       name: 'Stripe Global API',
       isActive: true,
@@ -81,10 +71,19 @@ export default function App() {
     {
       id: 'paypal',
       name: 'PayPal Commerce',
-      isActive: false,
+      isActive: true,
       apiKey: 'PAYPAL_CLIENT_ID_98834_ASD',
       webhookUrl: 'https://theamericanemporiu.com/api/webhooks/paypal',
       supportedMethods: ['PayPal', 'Pay Later', 'Venmo'],
+      testMode: true
+    },
+    {
+      id: 'checkout',
+      name: 'Checkout.com Hub',
+      isActive: false,
+      apiKey: 'ck_test_7c2b...8e11',
+      webhookUrl: 'https://theamericanemporiu.com/api/webhooks/checkout',
+      supportedMethods: ['Credit Cards', 'GPay'],
       testMode: true
     },
     {
@@ -386,7 +385,7 @@ export default function App() {
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             </div>
             <div className="space-y-1 max-h-[190px] overflow-y-auto pr-1">
-              {stores.map(store => (
+              {WED2C_STORES.map(store => (
                 <a
                   key={store.id}
                   href={store.url}
@@ -479,7 +478,6 @@ export default function App() {
         <main className="flex-1 p-8 overflow-y-auto space-y-6 bg-slate-50">
           {activeTab === 'overview' && (
             <Overview
-              stores={stores}
               agents={agents}
               campaigns={campaigns}
               paymentConfigs={paymentConfigs}
@@ -490,7 +488,6 @@ export default function App() {
 
           {activeTab === 'payment' && (
             <PaymentGateway
-              stores={stores}
               paymentConfigs={paymentConfigs}
               onToggleGateway={handleToggleGateway}
               onUpdateGatewayKeys={handleUpdateGatewayKeys}
@@ -501,7 +498,6 @@ export default function App() {
 
           {activeTab === 'agents' && (
             <AgentNetwork
-              stores={stores}
               agents={agents}
               onAddAgent={handleAddAgent}
               onTrackSale={handleTrackSale}
@@ -511,7 +507,6 @@ export default function App() {
 
           {activeTab === 'adplanner' && (
             <AdPlanner
-              stores={stores}
               campaigns={campaigns}
               onAddCampaign={handleAddCampaign}
               onDeleteCampaign={handleDeleteCampaign}
@@ -527,11 +522,7 @@ export default function App() {
           )}
 
           {activeTab === 'admin' && (
-            <AdminDashboard
-              stores={stores}
-              setStores={setStores}
-              onShowNotification={showNotification}
-            />
+            <AdminDashboard />
           )}
         </main>
       </div>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Agent, AgentRole, Store } from '../types';
+import { Agent, AgentRole } from '../types';
+import { WED2C_STORES } from '../data/stores';
 import {
   Users,
   UserPlus,
@@ -16,7 +17,6 @@ import {
 import { motion } from 'motion/react';
 
 interface AgentNetworkProps {
-  stores: Store[];
   agents: Agent[];
   onAddAgent: (newAgent: Omit<Agent, 'id' | 'totalSalesCount' | 'totalRevenueGenerated' | 'createdAt'>) => void;
   onTrackSale: (agentId: string, amount: number) => void;
@@ -24,7 +24,6 @@ interface AgentNetworkProps {
 }
 
 export const AgentNetwork: React.FC<AgentNetworkProps> = ({
-  stores,
   agents,
   onAddAgent,
   onTrackSale,
@@ -36,7 +35,7 @@ export const AgentNetwork: React.FC<AgentNetworkProps> = ({
   const [name, setName] = useState<string>('');
   const [role, setRole] = useState<AgentRole>('Agent');
   const [parentId, setParentId] = useState<string>('');
-  const [assignedStoreUrls, setAssignedStoreUrls] = useState<string[]>([stores[0]?.url || '']);
+  const [assignedStoreUrls, setAssignedStoreUrls] = useState<string[]>([WED2C_STORES[0].url]);
   const [commissionRate, setCommissionRate] = useState<number>(10);
   const [email, setEmail] = useState<string>('');
   const [phone, setPhone] = useState<string>('');
@@ -69,7 +68,7 @@ export const AgentNetwork: React.FC<AgentNetworkProps> = ({
     setName('');
     setRole('Agent');
     setParentId('');
-    setAssignedStoreUrls([stores[0]?.url || '']);
+    setAssignedStoreUrls([WED2C_STORES[0].url]);
     setCommissionRate(10);
     setEmail('');
     setPhone('');
@@ -321,7 +320,7 @@ export const AgentNetwork: React.FC<AgentNetworkProps> = ({
                       onChange={(e) => setAssignedStoreUrls([e.target.value])}
                       className="w-full text-slate-800 border border-slate-200 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 rounded-lg p-2 bg-white"
                     >
-                      {stores.map(store => (
+                      {WED2C_STORES.map(store => (
                         <option key={store.id} value={store.url}>
                           {store.name} ({store.url})
                         </option>
@@ -394,7 +393,7 @@ export const AgentNetwork: React.FC<AgentNetworkProps> = ({
                 {agents.map((agent) => {
                   const parentAgent = agent.parentId ? agents.find(p => p.id === agent.parentId) : null;
                   const isSubAgent = agent.role === 'Sub-Agent';
-                  const assignedStoreObj = stores.find(s => s.url === agent.assignedStoreUrls[0]);
+                  const assignedStoreObj = WED2C_STORES.find(s => s.url === agent.assignedStoreUrls[0]);
 
                   return (
                     <div

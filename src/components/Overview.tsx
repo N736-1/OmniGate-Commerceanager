@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Store, Agent, PaymentGatewayConfig, AdCampaign } from '../types';
+import { WED2C_STORES } from '../data/stores';
 import {
   Layers,
   Users,
@@ -18,7 +19,6 @@ import {
 import { motion } from 'motion/react';
 
 interface OverviewProps {
-  stores: Store[];
   agents: Agent[];
   campaigns: AdCampaign[];
   paymentConfigs: PaymentGatewayConfig[];
@@ -37,7 +37,6 @@ interface OverviewProps {
 }
 
 export const Overview: React.FC<OverviewProps> = ({
-  stores,
   agents,
   campaigns,
   paymentConfigs,
@@ -47,7 +46,7 @@ export const Overview: React.FC<OverviewProps> = ({
   const [copiedStoreIndex, setCopiedStoreIndex] = useState<number | null>(null);
 
   // Stats calculation
-  const totalStoresCount = stores.length;
+  const totalStoresCount = WED2C_STORES.length;
   const activeGatewaysLength = paymentConfigs.filter(g => g.isActive).length;
   const totalAgentsCount = agents.length;
   const subAgentsCount = agents.filter(a => a.role === 'Sub-Agent').length;
@@ -86,7 +85,7 @@ export const Overview: React.FC<OverviewProps> = ({
     ];
 
     const rows = transactions.map(tx => {
-      const storeObj = stores.find(s => s.url === tx.storeUrl);
+      const storeObj = WED2C_STORES.find(s => s.url === tx.storeUrl);
       const storeName = storeObj ? storeObj.name : "Unknown Store";
       const agentAssigned = tx.agentId ? tx.agentId : "Direct";
 
@@ -227,7 +226,7 @@ export const Overview: React.FC<OverviewProps> = ({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {stores.map((store, index) => {
+            {WED2C_STORES.map((store, index) => {
               // Aggregate statistics for this outlet
               const storeTransactions = transactions.filter(t => t.storeUrl === store.url);
               const storeSales = storeTransactions.reduce((sum, t) => sum + t.amount, 0);
@@ -331,7 +330,7 @@ export const Overview: React.FC<OverviewProps> = ({
                 </div>
               ) : (
                 transactions.map((tx) => {
-                  const storeObj = stores.find(s => s.url === tx.storeUrl);
+                  const storeObj = WED2C_STORES.find(s => s.url === tx.storeUrl);
                   return (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
